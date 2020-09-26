@@ -26,7 +26,7 @@ variable "Image_debian" {
 
 variable "Image_ubuntu" {
     type = string
-    default = "Ubuntu 20.04"
+    default = "ubuntu-os-cloud/ubuntu-2004-lts"
 }
 
 # variable "google_project" {

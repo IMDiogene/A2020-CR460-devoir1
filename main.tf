@@ -8,6 +8,12 @@ provider "google" {
 }
 
 
+resource "google_compute_network" "devoir1" {
+  name = var.default_network
+  project = var.default_project
+
+}
+
 
 resource "google_compute_subnetwork" "prod-dmz" {
   name = "prod-dmz"
@@ -38,6 +44,7 @@ resource "google_compute_instance" "canard" {
   name         = "canard"
   machine_type = "f1-micro"
   description = "Instance canard"
+  tags = ["interne"]
   boot_disk {
     initialize_params {
       image = var.Image_debian
@@ -112,17 +119,18 @@ resource "google_compute_instance" "fermier" {
 resource "google_compute_firewall" "traitement" {
   name = "traitement"
   allow { 
-    protocol = "all"
+    protocol = "TCP"
     ports = ["2846","5462"]
   }
   source_tags = ["traitement"]
   network = var.default_network
 }
 
-resource "google_compute_firewall" "ssh" {
-  name = "ssh"
+resource "google_compute_firewall" "traficssh" {
+  name = "traficssh"
   allow {
-    protocol = "ssh"
+    protocol = "tcp"
+    ports = ["22"]
   }
   source_tags = ["public-web"]
   target_tags = ["interne"]

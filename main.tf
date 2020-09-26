@@ -10,6 +10,7 @@ provider "google" {
 resource "google_compute_network" "devoir1" {
   name = "devoir1"
   description = "réseau principal"
+  
 }
 
 resource "google_compute_subnetwork" "prod-dmz" {
@@ -25,7 +26,7 @@ resource "google_compute_subnetwork" "prod-interne" {
   network = "devoir1"
   ip_cidr_range = "10.0.3.0/24"
   description = "sous-réseau pour mouton"
-  
+
 }
 
 resource "google_compute_subnetwork" "prod-traitement" {
@@ -33,6 +34,7 @@ resource "google_compute_subnetwork" "prod-traitement" {
   network = "devoir1"
   ip_cidr_range = "10.0.2.0/24"
   description = "sous-réseau pour cheval"
+  tags = "traitement"
   
 }
 
@@ -59,10 +61,11 @@ resource "google_compute_instance" "vm_instance" {
   name         = "mouton"
   machine_type = "f1-micro"
   description = "Instance mouton"
+  tags = ["interne"]
 
   boot_disk {
     initialize_params {
-      image = "CoreOs"
+      image = "fedora-coreos-cloud/fedora-coreos-stable"
     }
   }
 
@@ -78,10 +81,10 @@ resource "google_compute_instance" "vm_instance" {
   name         = "cheval"
   machine_type = "f1-micro"
   description = "Instance cheval"
-
+  tags = ["traitement","prod-traitement"]
   boot_disk {
     initialize_params {
-      image = "CoreOs"
+      image = "fedora-coreos-cloud/fedora-coreos-stable"
     }
   }
 
@@ -115,13 +118,23 @@ resource "google_compute_firewall" "traitement" {
   allow { 
     ports = ["2846","5462"]
   }
-  network = "*traitement*" 
+  source_tags = ["traitement"]
 }
 
 resource "google_compute_firewall" "ssh" {
   allow {
     protocol = "ssh"
   }
+  source_tags = ["public-web"]
+  target_tags = ["interne"]
   
 }
+
+resource "google_compute_firewall" "trafic-web" {
+  allow {
+    ports = ["80","443"]
+  }
+  
+}
+
 

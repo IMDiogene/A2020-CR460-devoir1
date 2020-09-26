@@ -2,20 +2,16 @@
 
 provider "google" {
   credentials = file("service-account.json")
-  project = "excellent-bolt-288300"
+  project = var.default_project #data.default-project.project_id
   region  = "us-central1"
-  zone    = "us-central1-c"
+  zone    = var.zone
 }
 
-resource "google_compute_network" "devoir1" {
-  name = "devoir1"
-  description = "réseau principal"
-  
-}
+
 
 resource "google_compute_subnetwork" "prod-dmz" {
   name = "prod-dmz"
-  network = "devoir1"
+  network = var.default_network #data.google_compute_network.default-network.name
   ip_cidr_range = "172.16.3.0/24"
   description = "sous-réseau pour canard"
 
@@ -23,7 +19,7 @@ resource "google_compute_subnetwork" "prod-dmz" {
 
 resource "google_compute_subnetwork" "prod-interne" {
   name = "prod-interne"
-  network = "devoir1"
+  network = var.default_network
   ip_cidr_range = "10.0.3.0/24"
   description = "sous-réseau pour mouton"
 
@@ -31,33 +27,32 @@ resource "google_compute_subnetwork" "prod-interne" {
 
 resource "google_compute_subnetwork" "prod-traitement" {
   name = "prod-traitement"
-  network = "devoir1"
+  network = var.default_network
   ip_cidr_range = "10.0.2.0/24"
   description = "sous-réseau pour cheval"
-  tags = "traitement"
   
 }
 
 
-resource "google_compute_instance" "vm_instance" {
+resource "google_compute_instance" "canard" {
   name         = "canard"
   machine_type = "f1-micro"
   description = "Instance canard"
   boot_disk {
     initialize_params {
-      image = "debian-cloud/debian-9"
+      image = var.Image_debian
     }
   }
 
   network_interface {
     # A default network is created for all GCP projects
-    network = "devoir1"
+    network = var.default_network
     access_config {
     }
   }
 }
 
-resource "google_compute_instance" "vm_instance" {
+resource "google_compute_instance" "mouton" {
   name         = "mouton"
   machine_type = "f1-micro"
   description = "Instance mouton"
@@ -65,76 +60,86 @@ resource "google_compute_instance" "vm_instance" {
 
   boot_disk {
     initialize_params {
-      image = "fedora-coreos-cloud/fedora-coreos-stable"
+      image = var.Image_fedora
     }
   }
 
   network_interface {
     # A default network is created for all GCP projects
-    network = "devoir1"
+    network = var.default_network
     subnetwork = "prod-interne"
     access_config {
     }
   }
 }
-resource "google_compute_instance" "vm_instance" {
+resource "google_compute_instance" "cheval" {
   name         = "cheval"
   machine_type = "f1-micro"
   description = "Instance cheval"
   tags = ["traitement","prod-traitement"]
   boot_disk {
     initialize_params {
-      image = "fedora-coreos-cloud/fedora-coreos-stable"
+      image = var.Image_fedora
     }
   }
 
   network_interface {
     # A default network is created for all GCP projects
-    network = "devoir1"
+    network = var.default_network
     subnetwork = "prod-traitement"
     access_config {
     }
   }
 }
-resource "google_compute_instance" "vm_instance" {
+resource "google_compute_instance" "fermier" {
   name         = "fermier"
   machine_type = "f1-micro"
   description = "Instance fermier"
   boot_disk {
     initialize_params {
-      image = "Ubuntu 20.04"
+      image = var.Image_ubuntu
     }
   }
 
   network_interface {
     # A default network is created for all GCP projects
-    network = "devoir1"
+    network = var.default_network
     access_config {
     }
   }
 }
 
 resource "google_compute_firewall" "traitement" {
+  name = "traitement"
   allow { 
+    protocol = "all"
     ports = ["2846","5462"]
   }
   source_tags = ["traitement"]
+  network = var.default_network
 }
 
 resource "google_compute_firewall" "ssh" {
+  name = "ssh"
   allow {
     protocol = "ssh"
   }
   source_tags = ["public-web"]
   target_tags = ["interne"]
-  
+  network = var.default_network
+
 }
 
-resource "google_compute_firewall" "trafic-web" {
+resource "google_compute_firewall" "traficweb" {
+  name = "traficweb"
   allow {
     ports = ["80","443"]
+    protocol = "tcp"
   }
-  
+  network = var.default_network
 }
 
+output "AdresseWebserver" {
+  value = "test output"
+}
 

@@ -139,7 +139,5 @@ resource "google_compute_firewall" "traficweb" {
   network = var.default_network
 }
 
-output "AdresseWebserver" {
-  value = "test output"
-}
+
 

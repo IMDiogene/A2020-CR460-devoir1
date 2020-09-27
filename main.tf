@@ -44,7 +44,7 @@ resource "google_compute_instance" "canard" {
   name         = "canard"
   machine_type = "f1-micro"
   description = "Instance canard"
-  tags = ["interne"]
+  tags = ["public"]
   boot_disk {
     initialize_params {
       image = var.Image_debian
@@ -53,6 +53,7 @@ resource "google_compute_instance" "canard" {
 
   network_interface {
     # A default network is created for all GCP projects
+    subnetwork = google_compute_subnetwork.prod-dmz.name
     network = var.default_network
     access_config {
     }
@@ -123,6 +124,7 @@ resource "google_compute_firewall" "traitement" {
     ports = ["2846","5462"]
   }
   source_tags = ["traitement"]
+  
   network = var.default_network
 }
 
@@ -132,7 +134,7 @@ resource "google_compute_firewall" "traficssh" {
     protocol = "tcp"
     ports = ["22"]
   }
-  source_tags = ["public-web"]
+  source_tags = ["public"]
   target_tags = ["interne"]
   network = var.default_network
 
@@ -145,6 +147,7 @@ resource "google_compute_firewall" "traficweb" {
     protocol = "tcp"
   }
   network = var.default_network
+  target_tags = ["public"]
 }
 
 

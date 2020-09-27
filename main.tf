@@ -65,7 +65,7 @@ resource "google_compute_instance" "mouton" {
   machine_type = "f1-micro"
   description = "Instance mouton"
   tags = ["interne"]
-
+  
   boot_disk {
     initialize_params {
       image = var.Image_fedora
@@ -134,7 +134,7 @@ resource "google_compute_firewall" "traficssh" {
     protocol = "tcp"
     ports = ["22"]
   }
-  source_tags = ["public"]
+  ip_cidr_range = ["0.0.0.0/0"]
   target_tags = ["interne"]
   network = var.default_network
 

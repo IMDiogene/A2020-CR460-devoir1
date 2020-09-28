@@ -44,7 +44,7 @@ resource "google_compute_instance" "canard" {
   name         = "canard"
   machine_type = "f1-micro"
   description = "Instance canard"
-  tags = ["public"]
+  tags = ["public-web"]
   boot_disk {
     initialize_params {
       image = var.Image_debian
@@ -64,7 +64,7 @@ resource "google_compute_instance" "mouton" {
   name         = "mouton"
   machine_type = "f1-micro"
   description = "Instance mouton"
-  tags = ["interne"]
+  tags = ["interne", "prod-interne"]
   
   boot_disk {
     initialize_params {
@@ -123,8 +123,8 @@ resource "google_compute_firewall" "traitement" {
     protocol = "TCP"
     ports = ["2846","5462"]
   }
-  source_tags = ["traitement"]
-  
+  source_tags = ["prod-interne"]
+  target_tags = ["traitement"]
   network = var.default_network
 }
 
@@ -134,7 +134,7 @@ resource "google_compute_firewall" "traficssh" {
     protocol = "tcp"
     ports = ["22"]
   }
-  ip_cidr_range = ["0.0.0.0/0"]
+  source_ranges = ["0.0.0.0/0"]
   target_tags = ["interne"]
   network = var.default_network
 
@@ -147,7 +147,7 @@ resource "google_compute_firewall" "traficweb" {
     protocol = "tcp"
   }
   network = var.default_network
-  target_tags = ["public"]
+  target_tags = ["public-web"]
 }
 
 
